@@ -1,0 +1,17 @@
+### Status
+GET {{baseUrl}}/status
+
+### Login
+POST {{baseUrl}}/login
+Content-Type: application/x-www-form-urlencoded
+
+username=nainfauxeninfo&password={{password}}
+
+### Get hashtag
+GET {{baseUrl}}/hashtags/bluebottle?refresh=false
+
+### Save hashtag to list
+POST {{baseUrl}}/hashtags/bluebottle
+
+### Get hashtag from list of to check
+GET {{}}

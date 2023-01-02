@@ -1,0 +1,7 @@
+Flask
+Pillow
+instagrapi
+Flask-Migrate
+Flask-SQLAlchemy
+psycopg2-binary
+toml

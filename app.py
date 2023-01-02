@@ -1,12 +1,10 @@
 import time
 
 from flask import request, jsonify
+import datetime
 
 from .modules import instagram, app, db
-from .database import HashtagCheck, HashtagToCheck
-
-transaction = db.session.execute
-
+from .database import HashtagCheck, HashtagToCheck, get_one, get_all, exists, add
 
 @app.get("/")
 def hello_world():
@@ -30,40 +28,44 @@ def login():
 
 @app.get("/hashtags/<string:name>")
 def get_hashtag_data(name: str):
-    refresh = request.args.get("refresh", type=bool)
-    exists = \
-        db.session.execute(db.select(db.func.count(HashtagCheck.name)).filter(HashtagCheck.name == name)).fetchone()[0]
-    if exists == 0:
+    refresh = request.args.get("refresh") == "true"
+    if exists(db.select(db.func.count(HashtagCheck.name)).filter(HashtagCheck.name == name)) is False:
         refresh = True
     if refresh is True:
         data = instagram.get_hashtag_data(name)
         hashtag = HashtagCheck(
             id=data["id"],
-            time=time.time(),
+            time=datetime.datetime.now(),
             name=name,
-            mentions_counts=data["mentions_count"]
+            media_count=data["media_count"]
         )
-        db.session.add(hashtag)
+        add(hashtag)
     else:
-        hashtag = db.session.execute(
-            db.select(HashtagCheck).filter(HashtagCheck.name == name).order_by(HashtagCheck.time).limit(1))
+        hashtag = get_one(db.select(HashtagCheck).filter(HashtagCheck.name == name).order_by(HashtagCheck.time.desc()))
     return jsonify(
         id=hashtag.id,
         time=hashtag.time,
         name=hashtag.name,
-        mentions_count=hashtag.mentions_count
+        media_count=hashtag.media_count
     )
 
 
 @app.post("/hashtags/<string:name>")
 def set_hashtag_to_check(name: str):
-    exists = \
-        transaction(
-            db.select(db.func.count(HashtagToCheck.name)).filter(HashtagToCheck.name == name)).fetchone()[0]
-    if exists == 0:
-        hashtag = HashtagToCheck(created=time.time(), name=name)
+    if exists(db.select(db.func.count(HashtagToCheck.name)).filter(HashtagToCheck.name == name)) is False:
+        hashtag = HashtagToCheck(created=datetime.datetime.now(), name=name)
+        if exists(db.select(db.func.count(HashtagCheck.name)).filter(HashtagCheck.name == name)) is False:
+            data = instagram.get_hashtag_data(name)
+            hashtag.last_check = datetime.datetime.now()
+            hashtag.hashtag_id = data["id"]
+        else:
+            hashtag_data = get_one(
+                db.select(HashtagCheck).filter(HashtagCheck.name == name).order_by(HashtagCheck.time.desc()))
+            hashtag.last_check = hashtag_data.time
+            hashtag.hashtag_id = hashtag_data.id
+        add(hashtag)
     else:
-        hashtag = transaction(db.select(HashtagToCheck).filter(HashtagToCheck.name == name)).fetchone()[0]
+        hashtag = get_one(db.select(HashtagToCheck).filter(HashtagToCheck.name == name))
     return jsonify(
         id=hashtag.id,
         name=hashtag.name,

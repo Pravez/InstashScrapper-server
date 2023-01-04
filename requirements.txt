@@ -5,3 +5,4 @@ Flask-Migrate
 Flask-SQLAlchemy
 psycopg2-binary
 toml
+flask_restx

@@ -1,7 +1,6 @@
 import toml
 from flask import Flask
 
-
 from .instagram import Instagram
 
 app = Flask(__name__)

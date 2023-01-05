@@ -43,7 +43,7 @@ def get_one(t) -> Optional[Any]:
 
 
 def get_all(t) -> List:
-    return transaction(t).fetchall()
+    return transaction(t).scalars().all()
 
 
 def exists(t) -> bool:

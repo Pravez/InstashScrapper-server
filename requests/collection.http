@@ -10,8 +10,11 @@ username=nainfauxeninfo&password={{password}}
 ### Get hashtag
 GET {{baseUrl}}/hashtags/naturopathie?refresh=false
 
-### Save hashtag to list
-POST {{baseUrl}}/hashtags/naturopathie
+### Get specific hashtag to check
+GET {{baseUrl}}/checks/sport
 
-### Get hashtag from list of to check
-GET {{}}
+### Get all hashtags to check
+GET {{baseUrl}}/checks
+
+### Save hashtag to list
+POST {{baseUrl}}/checks/sport

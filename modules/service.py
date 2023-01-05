@@ -1,7 +1,9 @@
 from datetime import datetime
+from typing import List
 
-from .database import HashtagCheck, exists, get_one, add, HashtagToCheck, db
+from .database import HashtagCheck, exists, get_one, add, HashtagToCheck, db, get_all
 from .config import instagram
+
 
 def get_or_create_hashtag_check(name: str, refresh: bool = False, persist: bool = False) -> HashtagCheck:
     if exists(db.select(db.func.count(HashtagCheck.name)).filter(HashtagCheck.name == name)) is False or refresh:
@@ -19,6 +21,18 @@ def get_or_create_hashtag_check(name: str, refresh: bool = False, persist: bool 
     return hashtag
 
 
+def get_hashtag_to_check(name: str) -> HashtagToCheck:
+    return get_one(db.select(HashtagToCheck).filter(HashtagToCheck.name == name))
+
+
+def get_hashtags_to_check() -> List[HashtagToCheck]:
+    return get_all(db.select(HashtagToCheck))
+
+
+def get_hashtag_check_for(name: str, date: datetime) -> HashtagCheck:
+    return get_one(db.select(HashtagCheck).filter(HashtagCheck.name == name, HashtagCheck.time == date))
+
+
 def get_or_create_hashtag_to_check(name: str) -> HashtagToCheck:
     if exists(db.select(db.func.count(HashtagToCheck.name)).filter(HashtagToCheck.name == name)) is False:
         hashtag = get_or_create_hashtag_check(name, persist=True)
@@ -32,3 +46,5 @@ def get_or_create_hashtag_to_check(name: str) -> HashtagToCheck:
     else:
         to_check = get_one(db.select(HashtagToCheck).filter(HashtagToCheck.name == name))
     return to_check
+
+

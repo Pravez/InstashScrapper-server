@@ -3,6 +3,7 @@ version: '3'
 services:
   database:
     image: timescale/timescaledb:latest-pg15
+    container_name: instash_db
     ports:
       - "5432:5432"
     environment:
@@ -11,6 +12,15 @@ services:
       - POSTGRES_PASSWORD=postgres
     volumes:
       - data:/var/lib/postgresql
+
+  app:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    ports:
+      - "5000:5000"
+    environment:
+      - flaskenv=docker
 
 volumes:
   data:

@@ -4,9 +4,10 @@ from datetime import datetime
 from flask import request, jsonify
 from flask_restx import Resource, Api, fields
 
-from modules.database import HashtagToCheck
-from .modules import instagram, app, get_or_create_hashtag_check, get_or_create_hashtag_to_check, get_hashtag_to_check, \
+from modules import instagram, app, get_or_create_hashtag_check, get_or_create_hashtag_to_check, get_hashtag_to_check, \
     get_hashtags_to_check, get_hashtag_check_for
+from modules.database import HashtagToCheck
+
 
 api = Api(app, version="0.1", title="InstashScrappAPI")
 
@@ -35,7 +36,6 @@ class HashtagToCheckDto:
     hashtag_id: str
     last_check: datetime
     media_count: int
-
 
 
 @api.route("/status")
@@ -90,3 +90,7 @@ class Checks(Resource):
 def to_dto(to_check: HashtagToCheck) -> HashtagToCheckDto:
     hashtag = get_hashtag_check_for(to_check.name, to_check.last_check)
     return HashtagToCheckDto(**to_check.serialize(), media_count=hashtag.media_count)
+
+
+if __name__ == "__main__":
+    app.run(debug=True)

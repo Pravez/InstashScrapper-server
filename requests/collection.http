@@ -18,3 +18,6 @@ GET {{baseUrl}}/checks
 
 ### Save hashtag to list
 POST {{baseUrl}}/checks/sport
+
+### Get related hashtags
+GET {{baseUrl}}/hashtags/sport/related

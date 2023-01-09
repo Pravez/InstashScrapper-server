@@ -1,6 +1,7 @@
-from typing import Tuple, Optional, Dict
+from typing import Tuple, Optional, Dict, List
 
 from instagrapi import Client
+
 
 class Instagram:
     _username: str
@@ -20,9 +21,16 @@ class Instagram:
             return False, str(e)
 
     def get_hashtag_data(self, name: str) -> Dict:
+        self._check_status()
+        return self._client.hashtag_info(name).dict()
+
+    def get_related_hashtags(self, name: str) -> List[Dict]:
+        self._check_status()
+        return [h.dict() for h in self._client.hashtag_related_hashtags(name)]
+
+    def _check_status(self):
         if self._client is None:
             raise SystemError("Not logged in")
-        return self._client.hashtag_info(name).dict()
 
     def status(self) -> bool:
         return self._client is not None

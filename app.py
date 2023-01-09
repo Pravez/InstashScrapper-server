@@ -8,8 +8,13 @@ from modules import instagram, app, get_or_create_hashtag_check, get_or_create_h
     get_hashtags_to_check, get_hashtag_check_for
 from modules.database import HashtagToCheck
 
-
 api = Api(app, version="0.1", title="InstashScrappAPI")
+
+base_hashtag_model = api.model("BaseHashtag", {
+    "id": fields.Integer,
+    "name": fields.String,
+    "media_count": fields.Integer
+})
 
 hashtag_check_model = api.model("HashtagCheck", {
     "id": fields.Integer,
@@ -43,16 +48,17 @@ class Status(Resource):
     def get(self):
         return jsonify(logged_in=instagram.status())
 
+login_parser = api.parser()
+login_parser.add_argument("username", type=str, location='form', required=True)
+login_parser.add_argument("password", type=str, location='form', required=True)
 
 @api.route("/login")
 class Login(Resource):
 
+    @api.expect(login_parser)
     def post(self):
-        for field in ["username", "password"]:
-            if field not in request.form or len(request.form[field]) <= 0:
-                return jsonify(error="A field is required", field=field)
-
-        stat, err = instagram.try_logging(request.form["username"], request.form["password"])
+        args = login_parser.parse_args()
+        stat, err = instagram.try_logging(args["username"], args["password"])
         return jsonify(status=stat, error=err)
 
 
@@ -63,6 +69,13 @@ class Hashtags(Resource):
         refresh = request.args.get("refresh") == "true"
         hashtag = get_or_create_hashtag_check(name, refresh, persist=True)
         return hashtag
+
+
+@api.route("/hashtags/<string:name>/related")
+class RelatedHashtags(Resource):
+    @api.marshal_list_with(base_hashtag_model)
+    def get(self, name: str):
+        return instagram.get_related_hashtags(name)
 
 
 @api.route("/checks/<string:name>")

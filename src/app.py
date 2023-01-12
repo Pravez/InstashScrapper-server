@@ -1,46 +1,14 @@
-from dataclasses import dataclass
-from datetime import datetime
-
-from flask import request, jsonify
-from flask_restx import Resource, Api, fields
+from flask import request, jsonify, abort
+from flask_restx import Resource, Api
+from werkzeug.exceptions import SecurityError
 
 from modules import instagram, app, get_or_create_hashtag_check, get_or_create_hashtag_to_check, get_hashtag_to_check, \
     get_hashtags_to_check, get_hashtag_check_for
-from modules.database import HashtagToCheck
+from dto import *
 
 api = Api(app, version="0.1", title="InstashScrappAPI")
 
-base_hashtag_model = api.model("BaseHashtag", {
-    "id": fields.Integer,
-    "name": fields.String,
-    "media_count": fields.Integer
-})
-
-hashtag_check_model = api.model("HashtagCheck", {
-    "id": fields.Integer,
-    "time": fields.DateTime,
-    "name": fields.String,
-    "media_count": fields.Integer
-})
-
-hashtag_to_check_model = api.model("HashtagToCheck", {
-    "id": fields.Integer,
-    "created": fields.DateTime,
-    "name": fields.String,
-    "hashtag_id": fields.String,
-    "last_check": fields.DateTime,
-    "media_count": fields.Integer
-})
-
-
-@dataclass
-class HashtagToCheckDto:
-    id: int
-    created: datetime
-    name: str
-    hashtag_id: str
-    last_check: datetime
-    media_count: int
+from models import *
 
 
 @api.route("/status")
@@ -48,9 +16,11 @@ class Status(Resource):
     def get(self):
         return jsonify(logged_in=instagram.status())
 
+
 login_parser = api.parser()
 login_parser.add_argument("username", type=str, location='form', required=True)
 login_parser.add_argument("password", type=str, location='form', required=True)
+
 
 @api.route("/login")
 class Login(Resource):
@@ -59,7 +29,9 @@ class Login(Resource):
     def post(self):
         args = login_parser.parse_args()
         stat, err = instagram.try_logging(args["username"], args["password"])
-        return jsonify(status=stat, error=err)
+        if "ChallengeResolve" in err:
+            raise SecurityError("You need to resolve the challenge on instagram.com")
+        return jsonify(status=stat)
 
 
 @api.route("/hashtags/<string:name>")
@@ -84,8 +56,8 @@ class Check(Resource):
     def get(self, name: str):
         to_check = get_hashtag_to_check(name)
         if to_check is None:
-            return {}, 404
-        return to_dto(to_check)
+            abort(404)
+        return HashtagToCheckDto.from_entity(to_check, get_hashtag_check_for(to_check.name, to_check.last_check))
 
     @api.marshal_with(hashtag_to_check_model)
     def post(self, name: str):
@@ -97,12 +69,8 @@ class Check(Resource):
 class Checks(Resource):
     @api.marshal_list_with(hashtag_to_check_model)
     def get(self):
-        return [to_dto(t) for t in get_hashtags_to_check()]
-
-
-def to_dto(to_check: HashtagToCheck) -> HashtagToCheckDto:
-    hashtag = get_hashtag_check_for(to_check.name, to_check.last_check)
-    return HashtagToCheckDto(**to_check.serialize(), media_count=hashtag.media_count)
+        return [HashtagToCheckDto.from_entity(t, get_hashtag_check_for(t.name, t.last_check)) for t in
+                get_hashtags_to_check()]
 
 
 if __name__ == "__main__":

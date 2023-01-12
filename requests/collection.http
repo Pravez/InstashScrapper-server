@@ -8,7 +8,7 @@ Content-Type: application/x-www-form-urlencoded
 username=nainfauxeninfo&password={{password}}
 
 ### Get hashtag
-GET {{baseUrl}}/hashtags/naturopathie?refresh=false
+GET {{baseUrl}}/hashtags/naturopathie?refresh=true
 
 ### Get specific hashtag to check
 GET {{baseUrl}}/checks/sport

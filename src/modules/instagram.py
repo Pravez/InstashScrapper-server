@@ -1,7 +1,7 @@
 from typing import Tuple, Optional, Dict, List
 
 from instagrapi import Client
-
+from werkzeug.exceptions import Unauthorized
 
 class Instagram:
     _username: str
@@ -30,7 +30,7 @@ class Instagram:
 
     def _check_status(self):
         if self._client is None:
-            raise SystemError("Not logged in")
+            raise Unauthorized("Not logged in")
 
     def status(self) -> bool:
         return self._client is not None

@@ -22,7 +22,7 @@ python3 -m flask run
 ## Database access
 
 Data is stored inside a Database (really ?), so you need to
-provide some credentials, which you can find in the [config file](resources/config-local.toml).
+provide some credentials, which you can find in the [config file](src/resources/config-local.toml).
 
 You can use the [docker-compose](dep/docker-compose.yml) file to start a TimescaleDB database.
 

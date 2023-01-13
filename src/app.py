@@ -18,8 +18,8 @@ class Status(Resource):
 
 
 login_parser = api.parser()
-login_parser.add_argument("username", type=str, location='form', required=True)
-login_parser.add_argument("password", type=str, location='form', required=True)
+login_parser.add_argument("username", type=str, location='json', required=True)
+login_parser.add_argument("password", type=str, location='json', required=True)
 
 
 @api.route("/login")

@@ -1,6 +1,6 @@
 from flask import request, jsonify, abort
 from flask_restx import Resource, Api
-from werkzeug.exceptions import SecurityError
+from werkzeug.exceptions import SecurityError, Unauthorized
 
 from modules import instagram, app, get_or_create_hashtag_check, get_or_create_hashtag_to_check, get_hashtag_to_check, \
     get_hashtags_to_check, get_hashtag_check_for
@@ -13,8 +13,9 @@ from models import *
 
 @api.route("/status")
 class Status(Resource):
+    @api.marshal_with(login_status_model)
     def get(self):
-        return jsonify(logged_in=instagram.status())
+        return {"logged_in": instagram.status()}
 
 
 login_parser = api.parser()
@@ -26,11 +27,14 @@ login_parser.add_argument("password", type=str, location='json', required=True)
 class Login(Resource):
 
     @api.expect(login_parser)
+    @api.marshal_with(login_result_model)
     def post(self):
         args = login_parser.parse_args()
         stat, err = instagram.try_logging(args["username"], args["password"])
         if "ChallengeResolve" in err:
             raise SecurityError("You need to resolve the challenge on instagram.com")
+        if not stat:
+            raise Unauthorized(err)
         return jsonify(status=stat)
 
 

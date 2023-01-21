@@ -1,3 +1,5 @@
+from typing import Dict
+
 from flask import request, jsonify, abort
 from flask_restx import Resource, Api
 from werkzeug.exceptions import SecurityError, Unauthorized
@@ -22,6 +24,9 @@ login_parser = api.parser()
 login_parser.add_argument("username", type=str, location='json', required=True)
 login_parser.add_argument("password", type=str, location='json', required=True)
 
+hashtags_get_parser = api.parser()
+hashtags_get_parser.add_argument("refresh", type=bool, location="args")
+
 
 @api.route("/login")
 class Login(Resource):
@@ -35,15 +40,17 @@ class Login(Resource):
             raise SecurityError("You need to resolve the challenge on instagram.com")
         if not stat:
             raise Unauthorized(err)
-        return jsonify(status=stat)
+        return {"status": stat}
 
 
 @api.route("/hashtags/<string:name>")
 class Hashtags(Resource):
+    @api.expect(hashtags_get_parser)
     @api.marshal_with(hashtag_check_model)
     def get(self, name: str):
-        refresh = request.args.get("refresh") == "true"
-        hashtag = get_or_create_hashtag_check(name, refresh, persist=True)
+        args = hashtags_get_parser.parse_args()
+        refresh = args.get("refresh", False)
+        hashtag = get_or_create_hashtag_check(name, refresh if refresh is not None else False, persist=True)
         return hashtag
 
 

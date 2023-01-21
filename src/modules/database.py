@@ -54,3 +54,7 @@ def exists(t) -> bool:
 def add(d):
     db.session.add(d)
     db.session.commit()
+
+
+def commit():
+    db.session.commit()

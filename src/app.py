@@ -1,16 +1,17 @@
 from typing import Dict
 
-from flask import request, jsonify, abort
+from flask import abort
 from flask_restx import Resource, Api
 from werkzeug.exceptions import SecurityError, Unauthorized
 
 from modules import instagram, app, get_or_create_hashtag_check, get_or_create_hashtag_to_check, get_hashtag_to_check, \
-    get_hashtags_to_check, get_hashtag_check_for
+    get_hashtags_to_check, get_hashtag_check_for, get_history_for_hashtag_check
 from dto import *
 
 api = Api(app, version="0.1", title="InstashScrappAPI")
 
 from models import *
+from cron import crontab
 
 
 @api.route("/status")
@@ -52,6 +53,14 @@ class Hashtags(Resource):
         refresh = args.get("refresh", False)
         hashtag = get_or_create_hashtag_check(name, refresh if refresh is not None else False, persist=True)
         return hashtag
+
+
+@api.route("/hashtags/<string:name>/history")
+class HashtagsHistory(Resource):
+    @api.marshal_list_with(hashtag_check_model)
+    def get(self, name: str):
+        hashtags = get_history_for_hashtag_check(name)
+        return hashtags
 
 
 @api.route("/hashtags/<string:name>/related")

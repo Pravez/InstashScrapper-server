@@ -9,3 +9,4 @@ flask_restx
 Werkzeug
 SQLAlchemy
 alembic
+flask-crontab

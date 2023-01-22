@@ -23,6 +23,10 @@ def get_or_create_hashtag_check(name: str, refresh: bool = False, persist: bool 
     return hashtag
 
 
+def get_history_for_hashtag_check(name: str) -> List[HashtagCheck]:
+    return get_all(db.select(HashtagCheck).filter(HashtagCheck.name == name).order_by(HashtagCheck.time.desc()))
+
+
 def try_refresh_hashtag_to_check_content(hashtag: HashtagCheck):
     if exists(db.select(db.func.count(HashtagToCheck.name)).filter(HashtagToCheck.name == hashtag.name)):
         hashtag_to_check = get_one(db.select(HashtagToCheck).filter(HashtagToCheck.name == hashtag.name))

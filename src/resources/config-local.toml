@@ -4,3 +4,11 @@ PORT = "5432"
 USER = "postgres"
 PASSWORD = "postgres"
 DB = "instash_scrapper"
+
+[INSTAGRAM]
+USERNAME = ""
+PASSWORD = ""
+
+[EMAIL]
+ADDRESS = ""
+PASSWORD = ""

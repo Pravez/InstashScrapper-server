@@ -10,3 +10,4 @@ Werkzeug
 SQLAlchemy
 alembic
 flask-crontab
+gunicorn

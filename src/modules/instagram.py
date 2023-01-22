@@ -1,19 +1,29 @@
+import logging
 from typing import Tuple, Optional, Dict, List
 
 from instagrapi import Client
 from instagrapi.mixins.challenge import ChallengeChoice
 from werkzeug.exceptions import Unauthorized
-import logging
 
 
 class Instagram:
     _username: str
     _client: Optional[Client]
+    _has_credentials_in_config: bool
 
     def __init__(self):
-        self._client = None
+        from .config import app
 
-    def try_logging(self, username: str, password: str) -> Tuple[bool, str]:
+        self._client = None
+        self._has_credentials_in_config = "INSTAGRAM" in app.config
+
+    def try_logging(self, username: Optional[str] = None, password: Optional[str] = None) -> Tuple[bool, str]:
+        if username is None or password is None:
+            from .config import app
+
+            logging.info("Try logging from config file ...")
+            username = app.config["INSTAGRAM"]["USERNAME"]
+            password = app.config["INSTAGRAM"]["PASSWORD"]
         self._username = username
         self._client = Client()
         self._client.challenge_code_handler = self._challenge_code_handler
@@ -38,7 +48,10 @@ class Instagram:
 
     def _check_status(self):
         if self._client is None:
-            raise Unauthorized("Not logged in")
+            if self._has_credentials_in_config:
+                self.try_logging()
+            else:
+                raise Unauthorized("Not logged in")
 
     def status(self) -> bool:
         return self._client is not None
@@ -48,6 +61,10 @@ class Instagram:
         if choice == ChallengeChoice.SMS:
             logging.error("Unable to handle the SMS challenge")
         elif choice == ChallengeChoice.EMAIL:
-            # https://adw0rd.github.io/instagrapi/usage-guide/challenge_resolver.html
-            logging.error("Unable to handle the Email challenge")
+            from .email import get_code_from_email
+
+            result = get_code_from_email(username)
+            if result:
+                return result
+            logging.error("Unable to find the correct mail")
         return False

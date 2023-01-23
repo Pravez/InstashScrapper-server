@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import List
 
-from .database import HashtagCheck, exists, get_one, add, HashtagToCheck, db, get_all, commit
+from .database import HashtagCheck, exists, get_one, add, HashtagToCheck, db, get_all, commit, execute, Category
 from .config import instagram
 
 
@@ -59,3 +59,15 @@ def get_or_create_hashtag_to_check(name: str) -> HashtagToCheck:
     else:
         to_check = get_one(db.select(HashtagToCheck).filter(HashtagToCheck.name == name))
     return to_check
+
+
+def delete_hashtag_to_check(name: str):
+    return execute(db.delete(HashtagToCheck).where(HashtagToCheck.name == name)).rowcount
+
+
+def get_categories() -> List[Category]:
+    return get_all(db.select(Category))
+
+
+def get_category(category_id: int) -> Category:
+    return get_one(db.select(Category).filter(Category.id == category_id))

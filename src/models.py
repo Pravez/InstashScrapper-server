@@ -30,3 +30,21 @@ login_result_model = api.model("LoginResult", {
 login_status_model = api.model("LoginStatus", {
     "logged_in": fields.Boolean
 })
+
+delete_result_model = api.model("DeleteResult", {
+    "deleted": fields.Integer
+})
+
+category_list_model = api.model("CategoryList", {
+    "id": fields.Integer,
+    "name": fields.String,
+    "created": fields.DateTime,
+    "related_hashtags": fields.Integer
+})
+
+category_model = api.model("Category", {
+    "id": fields.Integer,
+    "name": fields.String,
+    "created": fields.DateTime,
+    "hashtags": fields.List(fields.Nested(hashtag_to_check_model))
+})

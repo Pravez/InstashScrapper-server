@@ -34,6 +34,17 @@ class HashtagToCheck(db.Model, Serializer):
     hashtag_id = db.Column(db.String(128))
     last_check = db.Column(db.DateTime)
 
+    category_id = db.Column(db.Integer, db.ForeignKey("category.id"), nullable=True)
+    category = db.relationship("Category", back_populates="hashtags")
+
+
+class Category(db.Model, Serializer):
+    id = db.Column(db.Integer, primary_key=True)
+    created = db.Column(db.DateTime, nullable=False)
+    name = db.Column(db.String(512), nullable=False, unique=True)
+
+    hashtags = db.relationship("HashtagToCheck", back_populates="category")
+
 
 transaction = db.session.execute
 
@@ -50,6 +61,9 @@ def exists(t) -> bool:
     value = get_one(t)
     return value is not None and value > 0
 
+
+def execute(t) -> Any:
+    return transaction(t)
 
 def add(d):
     db.session.add(d)
